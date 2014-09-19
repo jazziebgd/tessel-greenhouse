@@ -1,0 +1,41 @@
+{
+	"hardware": {
+		"climate": true,
+		"climatePort" : "C",
+		"relay": "true",
+		"relayPort": "D",
+		"gprs": false,
+		"gprsPort": "A"
+	},
+	"wifi": {
+		"name": "networkname",
+		"password": "networkpass",
+		"security": "wpa2",
+		"timeout": 30
+	},
+	"server": {
+		"host": "srecnakuma.kms-dev.com",
+		"port": 80,
+		"auth" : {
+			"username": "user",
+			"password": "juzer"
+		},
+		"actions" : {
+			"getUserConfig": "/getUserConf",
+			"sendStatus": "/status"
+		}
+	},
+	"settings" : {
+		"temperature": {
+			"minTemp": "1",
+			"maxTemp": "12"
+		},
+		"humidity": {
+
+		},
+		"power": {
+			"starterRelayTimeout": 4,
+			"GPIOVoltagePin": 1
+		}
+	}
+}
