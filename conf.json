@@ -2,7 +2,7 @@
 	"hardware": {
 		"climate": true,
 		"climatePort" : "C",
-		"relay": "true",
+		"relay": true,
 		"relayPort": "D",
 		"gprs": false,
 		"gprsPort": "A"
@@ -14,21 +14,21 @@
 		"timeout": 30
 	},
 	"server": {
-		"host": "srecnakuma.kms-dev.com",
+		"host": "http://srecnakuma.kms-dev.com",
 		"port": 80,
 		"auth" : {
 			"username": "user",
 			"password": "juzer"
 		},
 		"actions" : {
-			"getUserConfig": "/getUserConf",
+			"getUserConfig": "/get_user_config",
 			"sendStatus": "/status"
 		}
 	},
 	"settings" : {
 		"temperature": {
-			"minTemp": "1",
-			"maxTemp": "12"
+			"min": 29,
+			"max": 30
 		},
 		"humidity": {
 
