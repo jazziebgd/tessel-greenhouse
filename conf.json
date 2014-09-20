@@ -16,6 +16,7 @@
 	"server": {
 		"host": "http://srecnakuma.kms-dev.com",
 		"port": 80,
+		"timeout": 5000,
 		"auth" : {
 			"username": "user",
 			"password": "juzer"
@@ -27,8 +28,9 @@
 	},
 	"settings" : {
 		"temperature": {
-			"min": 29,
-			"max": 30
+			"min": 30,
+			"max": 31,
+			"interval": 1000
 		},
 		"humidity": {
 
