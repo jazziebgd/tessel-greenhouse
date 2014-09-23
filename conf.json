@@ -30,16 +30,17 @@
 	"settings" : {
 		"reloadConfigInterval" : 60000,
 		"reportStatusInterval" : 60000,
+		"sensorReadInterval": 1000,
 		"temperature": {
+			"offset": -8.3,
 			"min": 30,
-			"max": 31,
-			"interval": 1000
+			"max": 31
 		},
 		"humidity": {
 
 		},
 		"power": {
-			"starterRelayTimeout": 4,
+			"starterRelayTimeout": 4000,
 			"GPIOVoltagePin": 1
 		}
 	}
