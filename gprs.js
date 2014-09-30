@@ -10,7 +10,8 @@ var gprsHttp = function(config){
 	this.httpInitialized = false;
 	this.httpFinished = false;
 	this.httpTerminated = false;
-	this.gprsInstructions = [
+
+	this._gprsInstructions = [
 		{
 			command: 'AT+SAPBR=3,1,"CONTYPE","GPRS"',
 			patience: 3000
@@ -32,6 +33,28 @@ var gprsHttp = function(config){
 			patience: 10000
 		}
 	];
+	this.gprsInstructions = [
+		{
+			command: 'AT+CGATT=1',
+			patience: 3000
+		},
+		{
+			command: 'AT+CGDCONT=1,"ip","internet"',
+			patience: 3000
+		},
+		{
+			command: 'AT+CIPMUX=0',
+			patience: 3000
+		},
+		{
+			command: 'AT+CSTT="internet","telenor","gprs"',
+			patience: 3000
+		},
+		{
+			command: 'AT+CIICR',
+			patience: 3000
+		}
+	];
 	this.httpGetPrepareInstructions = [
 		{
 			command: 'AT+HTTPINIT',
@@ -39,31 +62,127 @@ var gprsHttp = function(config){
 			reply: [ 'AT+HTTPINIT', 'OK' ]
 		},
 		{
-			command: 'AT+HTTPPARA="URL","{{url}}"',
+			command: 'AT+HTTPPARA="CID",1',
 			patience: 5000,
-			reply: [ 'AT+HTTPPARA="URL","http://blic.rs"', 'OK' ]
+			reply: [ 'AT+HTTPPARA="CID",1', 'OK' ]
+		},
+		{
+			command: 'AT+HTTPPARA="PROIP","217.065.192.033"',
+			patience: 5000,
+			reply: [ 'AT+HTTPPARA="PROIP","217.065.192.033"', 'OK' ]
+		},
+		{
+			command: 'AT+HTTPPARA="PROPORT","8080"',
+			patience: 5000,
+			reply: [ 'AT+HTTPPARA="PROPORT","8080"', 'OK' ]
+		},
+		{
+			command: 'AT+HTTPPARA="REDIR","1"',
+			patience: 5000,
+			reply: [ 'AT+HTTPPARA="REDIR","1"', 'OK' ]
+		},
+		{
+			command: 'AT+HTTPPARA="TIMEOUT","30"',
+			patience: 5000,
+			reply: [ 'AT+HTTPPARA="TIMEOUT","30"', 'OK' ]
+		},
+		{
+			command: 'AT+HTTPPARA="URL","http://srecnakuma.kms-web.com/get_user_config.php"',
+			patience: 5000,
+			reply: [ 'AT+HTTPPARA="URL","http://srecnakuma.kms-web.com/get_user_config.php"', 'OK' ]
 		},
 		{
 			command: 'AT+HTTPACTION=0',
 			patience: 20000,
 			reply: [ 'AT+HTTPACTION=0', 'OK' ]
+		},
+		{
+			command: 'AT+HTTPREAD',
+			patience: 20000,
+			reply: [ 'AT+HTTPREAD', 'OK' ]
 		}
 	];
+	this.mxHttpGetPrepareInstructions = [
+		{
+			command: 'AT+CIPSTATUS',
+			patience: 3000,
+			reply: [ 'AT+CIPSTATUS', 'OK' ]
+		},
+		{
+			command: 'AT+CIPHEAD=1',
+			patience: 3000,
+			reply: [ 'AT+CIPHEAD=1', 'OK' ]
+		},
+		{
+			command: 'AT+CDNSORIP=0',
+			patience: 3000,
+			reply: [ 'AT+CDNSORIP=0', 'OK' ]
+		},
+		{
+			command: 'AT+CIPSTART="TCP","78.47.72.53","80"',
+			patience: 3000,
+			reply: [ 'AT+CIPSTART="TCP","78.47.72.53","80"', 'OK' ]
+		},
+		{
+			command: 'AT+CIPSEND',
+			patience: 3000,
+			reply: [ 'AT+CIPSEND', 'OK' ]
+		},
+		{
+			command: 'GET /sk.php HTTP/1.1\nConnection: keep-alive\n\n',
+			patience: 3000,
+			reply: [ 'AT+', 'OK' ]
+		}
+	]
 }
-
 
 gprsHttp.prototype.initialize = function(callback){
 	var that = this;
-	var hardware = tessel.port['A'];
-	this.gprs = gprslib.use(hardware);
+	var hardware = tessel.port['A']
+;	this.gprs = gprslib.use(hardware);
 	//  Handle errors
 	this.gprs.on('error', function (err) {
   		console.log('Got an error of some kind:\n', err);
 	});
 
 	this.gprs.on('ready', function() {
-	  	console.log('GPRS module connected to Tessel. Searching for network...');
-		setTimeout(callback, 10000);
+	  	console.log('GSM module initializing...');
+		setTimeout(callback, 6000);
+	});
+}
+
+gprsHttp.prototype.executeInteractive = function(command){
+	var that = this;
+	command = String(command).replace(/[\r\n]*$/, '');
+	if (command.toLowerCase() === "exit"){
+	  	process.stdin.pause();
+	  	process.stdin.removeListener('data', _.bind(that.executeInteractive, that))
+	} else {
+	  	that.executeCommand(command, 120000, function(err, data){
+	  		console.log('\nreply:\nerr:\t', err, '\ndata:');
+	  		if (typeof data !== undefined && data.length){
+				data.forEach(function(d) {
+					console.log('\t' + d);
+				});
+			}
+	  	});
+		console.log('');
+	}
+}
+gprsHttp.prototype.executeCommand = function(command, patience, callback){
+	var that = this;
+	console.log("Executing " + command);
+	that.gprs._txrx(command, patience, function(err, data) {
+		if (err){
+			process.nextTick(function(){
+				callback(err, null);
+			});
+		} else {
+			console.log(data);
+			process.nextTick(function(){
+				callback(null, data);
+			});
+		}
 	});
 }
 
@@ -77,9 +196,17 @@ gprsHttp.prototype.tryConnectingGprs = function(callback, results){
 					instructionCallback(err, null);
 				});
 			} else {
-				process.nextTick(function(){
-					instructionCallback(null, data);
-				});
+				console.log(data);
+				if (data && data.length && data[1] == "ERROR"){
+					process.nextTick(function(){
+						instructionCallback(new Error("Error executing " + instruction.command), null);
+					});
+				} else {
+					process.nextTick(function(){
+						instructionCallback(null, data);
+					});
+				}
+				
 			}
 		});
 	}, function(err, data){
@@ -93,17 +220,24 @@ gprsHttp.prototype.tryConnectingGprs = function(callback, results){
 	});
 }
 
+gprsHttp.prototype.isGprsConnected = function(callback, results){
+	var command = "AT+CIPCSGP?";
+	var reply = ["+CIPCSGP: 1","internet","telenor","gprs", "OK" ];
+}
 
 gprsHttp.prototype.gprsConnect = function(callback, results){
 	var that = this;
 	if (!that.gprsConnected){
 		async.retry(5, _.bind(that.tryConnectingGprs, that), function(err, data){
 			if (err){
-				callback(err, null);
-				console.log(err);
+				process.nextTick(function(){
+					callback(err, null);
+					console.log(err);
+				});
 			} else {
-				console.log(data);
-				callback(null, data);
+				process.nextTick(function(){
+					callback(null, data);
+				});
 			}
 		});
 	} else {
@@ -116,27 +250,32 @@ gprsHttp.prototype.getUrl = function(url, callback){
 	if (!that.gprsConnected){
 		that.gprsConnect(function(err, data){
 			if (err){
-				console.log(err);
-				callback(err, null);
+				process.nextTick(function(){
+					console.log(err);
+					callback(err, null);
+				});
 			} else {
-				that.gprsConnected = 1;
-				that.getUrl(url, callback);
+				process.nextTick(function(){
+					that.gprsConnected = 1;
+					that.getUrl(url, callback);
+				});
 			}
 		})
 	} else {
-		async.retry(3, 
+		async.retry(3,
 			function(retryCallback){
 				that.tryGet.call(that, url, retryCallback);
-			}, 
+			},
 			function(err, data){
 				if (err){
-					console.log(err);
-					console.log(callback);
-					console.log(caller);
-					console.log(callee);
-					callback(err, null);
+					process.nextTick(function(){
+						console.log(err);
+						callback(err, null);
+					});
 				} else {
-					callback(null, data)
+					process.nextTick(function(){
+						callback(null, data);
+					});
 				}
 			}
 		);
@@ -199,15 +338,37 @@ gprsHttp.prototype.handlePlusResponse = function(data, callback){
 gprsHttp.prototype.tryGet = function(url, callback){
 	var that = this;
 	if (that.gprsConnected){
+		var plusHandler = function(data){
+			that.handlePlusResponse(data, function(err, data){
+				if (err){
+					console.log(err);
+					callback(err, data);
+				} else {
+					console.log(data);
+					callback(null, data);
+				}
+			});
+		}
+		that.gprs.on('+', plusHandler);
 		async.eachSeries(this.httpGetPrepareInstructions, function(instruction, instructionCallback){
 			console.log("Executing " + instruction.command);
 			instruction.command = instruction.command.replace(/\{\{url\}\}/, url);
 			that.gprs._txrx(instruction.command, instruction.patience, function(err, data) {
 				if (err){
-					instructionCallback(err, null);
+					process.nextTick(function(){
+						console.log(err);
+						instructionCallback(err, null);
+					});
 				} else {
-					console.log(data);
-					instructionCallback(null, data);
+					process.nextTick(function(){
+						if (data.length > 1 && data[1] === "ERROR"){
+							console.log("error at command " + data[0]);
+							instructionCallback(new Error("Error on " + data[0]), null);
+						} else {
+							console.log(data);
+							instructionCallback(null, data);
+						}
+					});
 				}
 			});
 		}, function(err, data){
@@ -216,26 +377,16 @@ gprsHttp.prototype.tryGet = function(url, callback){
 				callback(err, null);
 				//return tryGet();
 			} else {
-				var plusHandler = function(data){
-					handlePlusResponse(data, function(err, data){
-						if (err){
-							callback(err, data);
-						} else {
-
-						}
-					});
-				}
-
 				console.log("Request sent, waiting for response...");
 				setTimeout(function(){
 					that.gprs.removeListener('+', plusHandler);
 					that.gprs._txrx("AT+HTTPTERM", 10000, function(err, data) {
-						callback(new Error("Request failed."), null);
+						process.nextTick(function(){
+							that.gprs.postmaster.forceClear();
+							callback(new Error("Request failed."), null);
+						});
 					});
-				}, 90000);
-
-				that.gprs.on('+', plusHandler);
-
+				}, 40000);
 			}
 		});
 	} else {
@@ -243,9 +394,11 @@ gprsHttp.prototype.tryGet = function(url, callback){
 	}
 }
 
-module.exports = gprsHttp;
+gprsHttp.prototype.interactive = function(){
+	var that = this;
+	console.log("Entering interactive mode. Type EXIT to exit interactive mode.");
+	process.stdin.resume();
+	process.stdin.on('data', _.bind(that.executeInteractive, that));
+}
 
-var gh = new gprsHttp();
-gh.initialize(function(){
-	gh.getUrl("http://srecnakuma.kms-dev.com/get_user_config.php");
-})
+module.exports = gprsHttp;

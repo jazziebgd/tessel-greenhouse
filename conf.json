@@ -13,6 +13,9 @@
 		"security": "wpa2",
 		"timeout": 30
 	},
+	"gprs": {
+		"initializeTimeout": 10000
+	}
 	"server": {
 		"resolveUrl": "http://78.47.72.53/sk.php",
 		"host": "",
