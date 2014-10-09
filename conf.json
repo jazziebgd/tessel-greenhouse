@@ -4,8 +4,8 @@
 		"climatePort" : "C",
 		"relay": true,
 		"relayPort": "D",
-		"gprs": false,
-		"gprsPort": "A"
+		"gsm": true,
+		"gsmPort": "A"
 	},
 	"wifi": {
 		"name": "networkname",
@@ -14,30 +14,36 @@
 		"timeout": 30
 	},
 	"gprs": {
-		"initializeTimeout": 10000
-	}
+		"initializeTimeout": 10000,
+		"apn": "internet",
+		"apnUsername": "telenor",
+		"apnPassword": "gprs",
+		"useProxy": true,
+		"proxyIp": "217.065.192.033",
+		"proxyPort": "8080",
+		"httpReadBuffer": 128,
+		"httpTimeout": 30
+	},
 	"server": {
-		"resolveUrl": "http://78.47.72.53/sk.php",
-		"host": "",
+		"host": "srecnakuma.kms-web.com",
 		"port": 80,
-		"timeout": 5000,
-		"auth" : {
+		"timeout": 30000,
+		"_auth" : {
 			"username": "user",
 			"password": "juzer"
 		},
 		"actions" : {
-			"getUserConfig": "/srecnakuma/get_user_config.php",
-			"sendStatus": "/srecnakuma/status.php"
+			"getUserConfig": "/get_user_config.php",
+			"sendStatus": "/status.php"
 		}
 	},
 	"settings" : {
-		"reloadConfigInterval" : 60000,
-		"reportStatusInterval" : 60000,
-		"sensorReadInterval": 1000,
+		"reportStatusInterval" : 300000,
+		"sensorReadInterval": 30000,
 		"temperature": {
-			"offset": -8.3,
-			"min": 30,
-			"max": 31
+			"offset": 0,
+			"min": 20,
+			"max": 30
 		},
 		"humidity": {
 
@@ -46,5 +52,6 @@
 			"starterRelayTimeout": 4000,
 			"GPIOVoltagePin": 1
 		}
-	}
+	},
+	"debug": true
 }
