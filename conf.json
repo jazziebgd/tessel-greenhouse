@@ -15,11 +15,11 @@
 	},
 	"gprs": {
 		"initializeTimeout": 10000,
-		"apn": "internet",
-		"apnUsername": "telenor",
-		"apnPassword": "gprs",
+		"apn": "gprswap",
+		"apnUsername": "mts",
+		"apnPassword": "064",
 		"useProxy": true,
-		"proxyIp": "217.065.192.033",
+		"proxyIp": "172.017.088.198",
 		"proxyPort": "8080",
 		"httpReadBuffer": 128,
 		"httpTimeout": 30

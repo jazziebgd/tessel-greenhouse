@@ -1,7 +1,7 @@
-var gprsHttp = require("./lib/gprs-http");
+var gprsHttp = require("../lib/gprs-http");
 var _ = require("lodash");
 
-var cfg = require('./conf.json');
+var cfg = require('../conf.json');
 
 var cmd = "interactive";
 var urlToGet = "http://srecnakuma.kms-web.com/get_user_config.php";
